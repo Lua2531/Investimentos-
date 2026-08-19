@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico de Troca | Renda Fixa</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--text:#182230;--muted:#667085;--line:#e4e7ec;--accent:#111827}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px}
+h1{font-size:27px;margin:0 0 5px}.sub{color:var(--muted);font-size:14px}.tag{background:#fff;border:1px solid var(--line);padding:8px 11px;border-radius:999px;font-size:12px;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 2px 9px rgba(16,24,40,.04)}
+h2{font-size:18px;margin:0 0 12px}h3{font-size:14px;margin:18px 0 8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{font-size:12px;font-weight:700;display:block;margin:10px 0 5px}
+input,select{width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:8px;background:white;font-size:14px}
+button{width:100%;padding:13px;margin-top:16px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.result{margin-top:15px}.status{padding:14px;border-radius:11px;font-weight:800;margin:10px 0 15px}.good{background:#dcfae6}.warn{background:#fff3cd}.bad{background:#ffe0e0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{background:#f8fafc;border-radius:10px;padding:12px}.kpi span{font-size:11px;color:var(--muted);display:block}.kpi strong{font-size:18px;display:block;margin-top:4px}
+.diagnosis{margin-top:15px;padding:16px;border:1px solid var(--line);border-radius:12px}.diagnosis h3{margin:0 0 8px}.diagnosis p{margin:7px 0;line-height:1.5;font-size:14px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.secondary{background:white;color:#111827;border:1px solid #d0d5dd}
+.small{font-size:11px;color:var(--muted);line-height:1.45;margin-top:12px}.hidden{display:none}
+@media(max-width:780px){.grid,.kpis{grid-template-columns:1fr}.row,.actions{grid-template-columns:1fr}.top{display:block}.tag{display:inline-block;margin-top:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+<div><h1>Diagnóstico de Troca de Renda Fixa</h1><div class="sub">Compare a manutenção do título atual com uma nova oportunidade, usando a diferença na curva já conhecida.</div></div>
+<div class="tag">Versão 2 • Simulação</div>
+</div>
+
+<div class="grid">
+<section class="card">
+<h2>1. Título que o cliente já possui</h2>
+<div class="row">
+<div><label>Tipo</label><select id="oldType"><option>CDB</option><option>Debênture</option><option>CRA</option><option>CRI</option><option>Outro</option></select></div>
+<div><label>Indexador</label><select id="oldIndex"><option>CDI</option><option>IPCA</option><option>Prefixado</option></select></div>
+</div>
+<div class="row">
+<div><label>Valor atual (R$)</label><input id="oldValue" type="number" value="100000" step=".01"></div>
+<div><label>Taxa contratada (% a.a.)</label><input id="oldRate" type="number" value="1" step=".01"></div>
+</div>
+<div class="row">
+<div><label>Prazo restante (anos)</label><input id="oldYears" type="number" value="4" step=".1"></div>
+<div><label>IR sobre ganho (%)</label><input id="oldTax" type="number" value="15" step=".1"></div>
+</div>
+<label>Diferença na curva / custo de saída (R$)</label><input id="curve" type="number" value="4500" step=".01">
+<div class="row">
+<div><label>Cupons recebidos (R$)</label><input id="coupons" type="number" value="0" step=".01"></div>
+<div><label>Amortizações recebidas (R$)</label><input id="amort" type="number" value="0" step=".01"></div>
+</div>
+</section>
+
+<section class="card">
+<h2>2. Nova oportunidade</h2>
+<div class="row">
+<div><label>Tipo</label><select id="newType"><option>Debênture</option><option>CDB</option><option>CRA</option><option>CRI</option><option>Outro</option></select></div>
+<div><label>Indexador</label><select id="newIndex"><option>IPCA</option><option>CDI</option><option>Prefixado</option></select></div>
+</div>
+<div class="row">
+<div><label>Taxa ofertada (% a.a.)</label><input id="newRate" type="number" value="7" step=".01"></div>
+<div><label>Prazo (anos)</label><input id="newYears" type="number" value="4" step=".1"></div>
+</div>
+<div class="row">
+<div><label>IR sobre ganho (%)</label><input id="newTax" type="number" value="0" step=".1"></div>
+<div><label>Liquidez</label><select id="liquidity"><option>Até o vencimento</option><option>Mercado secundário</option><option>Diária</option></select></div>
+</div>
+<h3>Premissas</h3>
+<div class="row">
+<div><label>CDI médio estimado (% a.a.)</label><input id="cdi" type="number" value="13.9" step=".01"></div>
+<div><label>IPCA médio estimado (% a.a.)</label><input id="ipca" type="number" value="4.5" step=".01"></div>
+</div>
+<div class="row">
+<div><label>Cupons futuros/ano (R$)</label><input id="newCoupons" type="number" value="0" step=".01"></div>
+<div><label>Amortização futura (R$)</label><input id="newAmort" type="number" value="0" step=".01"></div>
+</div>
+<button onclick="calc()">Gerar diagnóstico</button>
+</section>
+</div>
+
+<section class="card result">
+<h2>3. Diagnóstico</h2>
+<div id="status" class="status warn">Preencha os dados e gere o diagnóstico.</div>
+<div class="kpis">
+<div class="kpi"><span>Valor líquido para sair</span><strong id="exit">—</strong></div>
+<div class="kpi"><span>Manter até o vencimento</span><strong id="oldF">—</strong></div>
+<div class="kpi"><span>Novo investimento</span><strong id="newF">—</strong></div>
+<div class="kpi"><span>Diferença projetada</span><strong id="adv">—</strong></div>
+</div>
+<div class="kpis" style="margin-top:10px">
+<div class="kpi"><span>Break-even aproximado</span><strong id="be">—</strong></div>
+<div class="kpi"><span>Margem sobre break-even</span><strong id="margin">—</strong></div>
+<div class="kpi"><span>Custo de saída</span><strong id="cost">—</strong></div>
+<div class="kpi"><span>Prazo adicional</span><strong id="extra">—</strong></div>
+</div>
+<div class="diagnosis">
+<h3>Por que trocar?</h3><p id="why">—</p>
+<h3>Leitura comercial</h3><p id="commercial">—</p>
+<h3>Alertas</h3><p id="alerts">—</p>
+</div>
+<div class="actions">
+<button class="secondary" onclick="copyDiagnosis()">Copiar diagnóstico</button>
+<button class="secondary" onclick="window.print()">Imprimir / salvar PDF</button>
+</div>
+<div class="small">A ferramenta usa as premissas inseridas pelo usuário. A diferença na curva é tratada como custo de saída informado manualmente. O cálculo é uma simulação de apoio e não constitui recomendação de investimento.</div>
+</section>
+</div>
+
+<script>
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function market(i){return i==='CDI'?+cdi.value:i==='IPCA'?+ipca.value:0}
+function annual(i,r){return i==='Prefixado'?r:market(i)+r}
+function future(principal,i,r,years,tax,coupon,amort){
+  const gross=principal*Math.pow(1+annual(i,r)/100,years);
+  const gain=Math.max(0,gross-principal);
+  return gross-gain*(tax/100)+coupon*years+amort;
+}
+function calc(){
+ const ov=+oldValue.value, cv=+curve.value, exit=Math.max(0,ov-cv);
+ const of=future(ov,oldIndex.value,+oldRate.value,+oldYears.value,+oldTax.value,+coupons.value,+amort.value);
+ const nf=future(exit,newIndex.value,+newRate.value,+newYears.value,+newTax.value,+newCoupons.value,+newAmort.value);
+ const adv=nf-of, extra=+newYears.value-+oldYears.value;
+ let lo=-20,hi=60;
+ for(let i=0;i<90;i++){let m=(lo+hi)/2;let x=future(exit,newIndex.value,m,+newYears.value,+newTax.value,+newCoupons.value,+newAmort.value)-of;if(x<0)lo=m;else hi=m}
+ const be=hi, margin=+newRate.value-be;
+ status.className='status '+(adv>1000?'good':adv>=0?'warn':'bad');
+ status.textContent=adv>1000?'🟢 TROCA POTENCIALMENTE VANTAJOSA':adv>=0?'🟡 TROCA AVALIAR COM CUIDADO':'🔴 MANTER O TÍTULO ATUAL TENDE A SER MELHOR';
+ exitEl.textContent=brl(exit);oldF.textContent=brl(of);newF.textContent=brl(nf);advEl.textContent=(adv>=0?'+':'')+brl(adv);
+ beEl.textContent=(newIndex.value==='Prefixado'?'Prefixado ':newIndex.value+' + ')+be.toFixed(2)+'% a.a.';
+ marginEl.textContent=(margin>=0?'+':'')+margin.toFixed(2)+' p.p.';
+ costEl.textContent=brl(cv);extraEl.textContent=(extra>0?'+':'')+extra.toFixed(1)+' anos';
+
+ why.textContent=adv>1000
+ ? `A saída antecipada custa ${brl(cv)}, mas, nas premissas informadas, o novo investimento compensa esse custo e projeta aproximadamente ${brl(adv)} a mais até o horizonte considerado.`
+ : adv>=0
+ ? `A troca apresenta vantagem estimada de ${brl(adv)}, porém a folga é pequena. Vale avaliar liquidez, risco de crédito, prazo e as premissas de CDI/IPCA antes de concluir.`
+ : `O custo de saída e/ou a remuneração do novo título não compensam, nas premissas atuais, o resultado projetado da manutenção. A indicação é preservar o título atual e reavaliar novas oportunidades.`;
+
+ commercial.textContent=adv>1000
+ ? `O ponto-chave para a conversa é o break-even: o novo título precisa entregar aproximadamente ${newIndex.value==='Prefixado'?'Prefixado ':newIndex.value+' + '}${be.toFixed(2)}% a.a. para compensar a troca. A oferta atual está ${Math.abs(margin).toFixed(2)} p.p. ${margin>=0?'acima':'abaixo'} desse nível.`
+ : `Evite vender a troca apenas pela taxa nominal. Mostre primeiro o custo de saída e compare o ganho adicional líquido.`;
+
+ let alerts=[];
+ if(+newYears.value>+oldYears.value) alerts.push(`O novo título alonga o prazo em ${extra.toFixed(1)} anos.`);
+ if(liquidity.value==='Até o vencimento') alerts.push('O novo título não tem liquidez diária e deve ser analisado quanto à possibilidade de saída.');
+ if(newIndex.value!==oldIndex.value) alerts.push(`Há mudança de indexador (${oldIndex.value} → ${newIndex.value}); a comparação depende das premissas de mercado.`);
+ if(cv>ov*0.05) alerts.push('O custo de saída supera 5% do valor atual; merece atenção especial.');
+ if(!alerts.length) alerts.push('Nenhum alerta estrutural identificado pelos campos preenchidos.');
+ alertsEl.textContent=alerts.join(' ');
+}
+const exitEl=document.getElementById('exit'), oldF=document.getElementById('oldF'), newF=document.getElementById('newF'), advEl=document.getElementById('adv');
+const beEl=document.getElementById('be'),marginEl=document.getElementById('margin'),costEl=document.getElementById('cost'),extraEl=document.getElementById('extra');
+const why=document.getElementById('why'),commercial=document.getElementById('commercial'),alertsEl=document.getElementById('alerts');
+function copyDiagnosis(){
+ const text=`DIAGNÓSTICO DE TROCA\n${status.textContent}\nValor líquido para sair: ${exitEl.textContent}\nManter: ${oldF.textContent}\nNovo: ${newF.textContent}\nDiferença: ${advEl.textContent}\nBreak-even: ${beEl.textContent}\nMargem: ${marginEl.textContent}\n\nPor que trocar?\n${why.textContent}\n\nLeitura comercial\n${commercial.textContent}\n\nAlertas\n${alertsEl.textContent}`;
+ navigator.clipboard?.writeText(text).then(()=>alert('Diagnóstico copiado.'));
+}
+</script>
+</body>
+</html>
