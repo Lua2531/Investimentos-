@@ -1,0 +1,120 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico de Troca | Renda Fixa</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#182230;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}.wrap{max-width:1050px;margin:auto;padding:18px}.top{margin-bottom:18px}h1{font-size:26px;margin:0 0 5px}.sub{color:#667085;font-size:14px;line-height:1.4}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:#fff;border:1px solid #e4e7ec;border-radius:15px;padding:17px;box-shadow:0 2px 8px rgba(16,24,40,.04)}h2{font-size:18px;margin:0 0 12px}h3{font-size:14px;margin:16px 0 7px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px}input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:8px;font-size:15px;background:#fff}.help,.note{font-size:11px;color:#667085;line-height:1.4}.btn{width:100%;border:0;border-radius:9px;padding:13px;margin-top:15px;background:#111827;color:#fff;font-size:15px;font-weight:800}.result{margin-top:14px}.status{padding:14px;border-radius:11px;font-weight:800;font-size:16px;margin:10px 0}.good{background:#dcfae6}.warn{background:#fff3cd}.bad{background:#ffe0e0}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi{background:#f8fafc;border-radius:10px;padding:12px}.kpi span{display:block;color:#667085;font-size:11px}.kpi strong{display:block;font-size:19px;margin-top:4px}.diagnosis{margin-top:14px;border:1px solid #e4e7ec;border-radius:12px;padding:15px}.diagnosis h3{margin:0 0 5px}.diagnosis p{font-size:14px;line-height:1.5;margin:5px 0 14px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.secondary{background:#fff;color:#111827;border:1px solid #d0d5dd}@media(max-width:760px){.grid,.kpis,.row,.actions{grid-template-columns:1fr}}</style></head><body><div class="wrap">
+<div class="top"><h1>Diagnóstico de Troca de Renda Fixa</h1><div class="sub">Compare manter o título atual com uma nova oportunidade. Valores em reais aceitam ponto ou vírgula.</div></div>
+<div class="grid"><section class="card"><h2>1. Título atual</h2>
+<div class="row"><div><label>Tipo</label><select id="oldType" onchange="syncTax('old')"><option>CDB</option><option>Debênture</option><option>CRA</option><option>CRI</option><option>Outro</option></select></div><div><label>Indexador</label><select id="oldIndex" onchange="helpRate('old')"><option>CDI</option><option>IPCA</option><option>Prefixado</option></select></div></div>
+<label>Valor atual (R$)</label><input id="oldValue" value="100.000,00" inputmode="decimal">
+<div class="row"><div><label>Rentabilidade contratada</label><input id="oldRate" value="94" inputmode="decimal"><div id="oldHelp" class="help">CDI: informe % do CDI. Ex.: 94 = 94% do CDI.</div></div><div><label>Prazo restante (anos)</label><input id="oldYears" value="1" inputmode="decimal"></div></div>
+<div class="row"><div><label>IR sobre rendimento (%)</label><input id="oldTax" value="0" inputmode="decimal"></div><div><label>Diferença na curva / saída (R$)</label><input id="curve" value="1.000,00" inputmode="decimal"></div></div>
+<div class="row"><div><label>Cupons já recebidos (R$)</label><input id="coupons" value="2.000,00" inputmode="decimal"></div><div><label>Amortizações já recebidas (R$)</label><input id="amort" value="0,00" inputmode="decimal"></div></div><div class="note">Esses valores são históricos: ficam registrados, mas não entram novamente na projeção futura.</div></section>
+<section class="card"><h2>2. Nova oportunidade</h2>
+<div class="row"><div><label>Tipo</label><select id="newType" onchange="syncTax('new')"><option>Debênture</option><option>CDB</option><option>CRA</option><option>CRI</option><option>Outro</option></select></div><div><label>Indexador</label><select id="newIndex" onchange="helpRate('new')"><option>IPCA</option><option>CDI</option><option>Prefixado</option></select></div></div>
+<label>Taxa / rentabilidade ofertada</label><input id="newRate" value="7" inputmode="decimal"><div id="newHelp" class="help">IPCA: informe taxa real. Ex.: 7 = IPCA + 7% a.a.</div>
+<div class="row"><div><label>Prazo (anos)</label><input id="newYears" value="4" inputmode="decimal"></div><div><label>IR sobre rendimento (%)</label><input id="newTax" value="0" inputmode="decimal"></div></div>
+<label>Liquidez</label><select id="liquidity"><option>Até o vencimento</option><option>Mercado secundário</option><option>Diária</option></select>
+<h3>Premissas</h3><div class="row"><div><label>CDI médio (% a.a.)</label><input id="cdi" value="13,90" inputmode="decimal"></div><div><label>IPCA médio (% a.a.)</label><input id="ipca" value="4,50" inputmode="decimal"></div></div><div class="row"><div><label>Reinvestimento após vencimento (% do CDI)</label><input id="reinvest" value="100" inputmode="decimal"><div class="help">Usado para levar os dois cenários ao mesmo horizonte quando um título vence antes.</div></div></div>
+<div class="row"><div><label>Cupons futuros por ano (R$)</label><input id="newCoupons" value="0,00" inputmode="decimal"></div><div><label>Amortização futura (R$)</label><input id="newAmort" value="0,00" inputmode="decimal"></div></div>
+<button class="btn" onclick="calc()">Gerar diagnóstico</button></section></div>
+<section class="card result"><h2>3. Diagnóstico</h2><div id="status" class="status warn">Preencha os dados e gere o diagnóstico.</div>
+<div class="kpis"><div class="kpi"><span>Valor líquido para reinvestir</span><strong id="exit">—</strong></div><div class="kpi"><span>Manter título atual</span><strong id="oldF">—</strong></div><div class="kpi"><span>Novo título</span><strong id="newF">—</strong></div></div>
+<div class="kpis" style="margin-top:10px"><div class="kpi"><span>Diferença projetada</span><strong id="adv">—</strong></div><div class="kpi"><span>Break-even</span><strong id="be">—</strong></div><div class="kpi"><span>Margem sobre break-even</span><strong id="margin">—</strong></div></div>
+<div class="diagnosis"><h3>Por que trocar?</h3><p id="why">—</p><h3>Leitura comercial</h3><p id="commercial">—</p><h3>Alertas</h3><p id="alerts">—</p></div>
+<div class="actions"><button class="btn secondary" onclick="copyDiagnosis()">Copiar diagnóstico</button><button class="btn secondary" onclick="window.print()">Imprimir / PDF</button></div>
+<div class="note"><b>Importante:</b> simulação baseada nas premissas informadas. A diferença na curva é inserida manualmente.</div></section></div>
+<script>
+const E=id=>document.getElementById(id),brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function num(id){
+  let s=String(E(id).value).trim().replace(/\s/g,'');
+  if(!s)return 0;
+  const money=['oldValue','curve','coupons','amort','newCoupons','newAmort'].includes(id);
+  if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+  else if(money && /^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
+  else if((s.match(/\./g)||[]).length>1)s=s.replace(/\./g,'');
+  return Number(s)||0;
+}
+function syncTax(w){let t=E(w+'Type').value;if(t==='CRA'||t==='CRI')E(w+'Tax').value='0'}
+function helpRate(w){
+  let i=E(w+'Index').value;
+  E(w+'Help').textContent=i==='CDI'?'CDI: informe % do CDI. Ex.: 94 = 94% do CDI.':
+    i==='IPCA'?'IPCA: informe taxa real. Ex.: 7 = IPCA + 7% a.a.':
+    'Prefixado: informe taxa nominal. Ex.: 14 = 14% a.a.';
+}
+function market(i){return i==='CDI'?num('cdi'):i==='IPCA'?num('ipca'):0}
+function rate(i,r){return i==='CDI'?market(i)*r/100:i==='IPCA'?market(i)+r:r}
+function grow(p,i,r,y){return p*Math.pow(1+rate(i,r)/100,y)}
+function taxValue(g,p,t){let gain=Math.max(0,g-p);return g-gain*t/100}
+function projectToHorizon(principal,indexer,contractRate,years,tax,coupon,amort,horizon){
+  let g=grow(principal,indexer,contractRate,years);
+  g=taxValue(g,principal,tax);
+  g+=coupon*years+amort;
+  if(years<horizon){
+    const reinv=market('CDI')*num('reinvest')/100;
+    g=g*Math.pow(1+reinv/100,horizon-years);
+  }
+  return g;
+}
+function calc(){
+  const ov=num('oldValue');
+  const cv=num('curve');
+  const exit=Math.max(0,ov-cv);
+  const oi=E('oldIndex').value, ni=E('newIndex').value;
+  const oy=num('oldYears'), ny=num('newYears');
+  const horizon=Math.max(oy,ny);
+
+  // Past coupons/amortizations are already received and therefore do not alter
+  // the future decision. They are shown as historical information only.
+  const oldF=projectToHorizon(ov,oi,num('oldRate'),oy,num('oldTax'),0,0,horizon);
+  const newF=projectToHorizon(exit,ni,num('newRate'),ny,num('newTax'),num('newCoupons'),num('newAmort'),horizon);
+  const adv=newF-oldF;
+
+  // Break-even for the new offer, expressed in the new title's own rate units.
+  let lo=-20,hi=200;
+  for(let i=0;i<120;i++){
+    const m=(lo+hi)/2;
+    const x=projectToHorizon(exit,ni,m,ny,num('newTax'),num('newCoupons'),num('newAmort'),horizon)-oldF;
+    if(x<0)lo=m; else hi=m;
+  }
+  const be=hi, margin=num('newRate')-be;
+
+  E('status').className='status '+(adv>1000?'good':adv>=0?'warn':'bad');
+  E('status').textContent=adv>1000?'🟢 TROCA POTENCIALMENTE VANTAJOSA':
+    adv>=0?'🟡 TROCA COM VANTAGEM PEQUENA':'🔴 MANTER O TÍTULO ATUAL TENDE A SER MELHOR';
+
+  E('exit').textContent=brl(exit);
+  E('oldF').textContent=brl(oldF);
+  E('newF').textContent=brl(newF);
+  E('adv').textContent=(adv>=0?'+':'')+brl(adv);
+
+  const bt=ni==='CDI'?be.toFixed(2)+'% do CDI':
+    ni==='IPCA'?'IPCA + '+be.toFixed(2)+'% a.a.':be.toFixed(2)+'% a.a.';
+  E('be').textContent=bt;
+  E('margin').textContent=(margin>=0?'+':'')+margin.toFixed(2)+' p.p.';
+
+  let a=[];
+  if(oy!==ny)a.push('Os prazos são diferentes; o título que vence antes foi projetado novamente até o mesmo horizonte.');
+  if(E('liquidity').value==='Até o vencimento')a.push('O novo título tem liquidez restrita até o vencimento.');
+  if(oi!==ni)a.push('Há mudança de indexador.');
+  if(cv>ov*.05)a.push('O custo de saída supera 5% do valor atual.');
+  a.push('Cupons e amortizações já recebidos não entram novamente no cálculo futuro.');
+  E('alerts').textContent=a.join(' ');
+
+  if(adv>1000){
+    E('why').textContent='Mesmo após o custo de saída de '+brl(cv)+', o novo título projeta aproximadamente '+brl(adv)+' a mais no mesmo horizonte de '+horizon.toFixed(1)+' ano(s).';
+    E('commercial').textContent='Para empatar com a manutenção, o novo título precisa entregar '+bt+'. A oferta atual está acima desse ponto.';
+  }else if(adv>=0){
+    E('why').textContent='A troca apresenta vantagem estimada de '+brl(adv)+' no mesmo horizonte, mas a folga é pequena e deve ser avaliada junto com liquidez e risco.';
+    E('commercial').textContent='O novo título precisa entregar '+bt+' para empatar. A diferença para a oferta atual é de '+margin.toFixed(2)+' p.p.';
+  }else{
+    E('why').textContent='Nas premissas informadas, manter o título atual projeta aproximadamente '+brl(-adv)+' a mais que a troca no mesmo horizonte.';
+    E('commercial').textContent='O novo título precisaria pagar '+bt+' para empatar. A oferta atual está '+Math.abs(margin).toFixed(2)+' p.p. abaixo do break-even.';
+  }
+}
+function copyDiagnosis(){
+  let t='DIAGNÓSTICO DE TROCA\n'+E('status').textContent+'\nValor líquido para reinvestir: '+E('exit').textContent+
+  '\nManter título atual: '+E('oldF').textContent+'\nNovo título: '+E('newF').textContent+
+  '\nDiferença: '+E('adv').textContent+'\nBreak-even: '+E('be').textContent+
+  '\nMargem: '+E('margin').textContent+'\n\n'+E('why').textContent+
+  '\n\n'+E('commercial').textContent+'\n\nAlertas: '+E('alerts').textContent;
+  navigator.clipboard?.writeText(t).then(()=>alert('Diagnóstico copiado.'));
+}
+</script></body></html>
