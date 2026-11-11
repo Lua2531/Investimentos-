@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#142b3d">
+<title>Simulador Soberano Renda Pré</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px 13px 36px;background:#f3f6f9;color:#172536;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+main{max-width:650px;margin:0 auto}
+header{background:#142b3d;color:#fff;border-radius:19px;padding:22px;margin-bottom:15px}
+.eyebrow{font-size:11px;letter-spacing:.12em;font-weight:800;color:#f2a15b}
+h1{font-size:24px;margin:8px 0}.desc{font-size:14px;line-height:1.5;color:#d8e2eb}
+.card{background:#fff;border:1px solid #e1e7ed;border-radius:17px;padding:18px;margin:14px 0;box-shadow:0 5px 18px #162d4009}
+h2{font-size:17px;margin:0 0 10px}
+label{display:block;font-size:13px;font-weight:700;margin:13px 0 6px}
+input{width:100%;padding:13px;border:1px solid #cbd5df;border-radius:10px;font-size:17px;color:#172536;background:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint,.note{font-size:11px;line-height:1.5;color:#64748b;margin-top:5px}
+button{width:100%;padding:14px;border:0;border-radius:11px;background:#155d98;color:#fff;font-size:15px;font-weight:750;margin-top:15px;cursor:pointer}
+.result{background:#eef7f1;border:1px solid #d0e8d7;border-radius:14px;padding:16px;margin-top:16px}
+.kicker{font-size:11px;font-weight:800;letter-spacing:.07em;color:#526b5a}
+.big{font-size:30px;font-weight:850;color:#146b3e;margin:7px 0}
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #dce9df;font-size:14px}
+.row strong{text-align:right}
+.warning{background:#fff8eb;border:1px solid #f1dfb8;border-radius:11px;padding:12px;font-size:12px;line-height:1.5;margin-top:13px;color:#6b542a}
+@media(max-width:430px){.grid{grid-template-columns:1fr}.big{font-size:27px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="eyebrow">FERRAMENTA COMERCIAL • ITAÚ</div>
+<h1>Soberano Renda Pré</h1>
+<div class="desc">Simule a remuneração bruta indicativa para diferentes clientes e valores de aplicação.</div>
+</header>
+<section class="card">
+<h2>Dados da simulação</h2>
+<label for="amount">Valor que o cliente vai aplicar (R$)</label>
+<input id="amount" type="text" inputmode="decimal" min="0" step="1000" value="100000">
+<div class="grid">
+<div><label for="di">Referência DI futuro (% ao ano)</label><input id="di" type="text" inputmode="decimal" min="0" step="0.001" value="15.015"><div class="hint">Atualize conforme a referência confirmada. Aceita vírgula ou ponto.</div></div>
+<div><label for="spread">Adicional da estrutura (% ao ano)</label><input id="spread" type="text" inputmode="decimal" min="0" step="0.01" value="0.80"><div class="hint">Exemplo do material: 0,80 p.p. a.a.</div></div>
+</div>
+<div class="grid">
+<div><label for="years">Prazo da simulação (anos)</label><input id="years" type="text" inputmode="decimal" min="0.01" step="0.1" value="8.67"></div>
+<div><label for="wait">Carência inicial (meses)</label><input id="wait" type="text" inputmode="numeric" min="0" step="1" value="6"></div>
+</div>
+<button id="calculate" type="button">Calcular rentabilidade</button>
+<div class="result" aria-live="polite">
+<div class="kicker">TAXA INDICATIVA COMBINADA</div>
+<div class="big" id="combined">15,815% a.a.</div>
+<div class="row"><span>Valor aplicado</span><strong id="principal">R$ 100.000,00</strong></div>
+<div class="row"><span>Remuneração bruta anual equivalente</span><strong id="annual">R$ 15.815,00</strong></div>
+<div class="row"><span>Média mensal equivalente</span><strong id="monthly">R$ 1.317,92</strong></div>
+<div class="row"><span>Prazo considerado</span><strong id="term">8,67 anos</strong></div>
+<div class="row"><span>Remuneração bruta acumulada estimada</span><strong id="accumulated">R$ 137.116,05</strong></div>
+<div class="row"><span>Principal + remuneração estimada</span><strong id="total">R$ 237.116,05</strong></div>
+</div>
+<button id="copy" type="button">Copiar resumo para WhatsApp</button>
+<div class="warning"><strong>Importante:</strong> o acumulado é uma estimativa simplificada por juros simples: aplicação × taxa anual × prazo. A média mensal é apenas uma equivalência matemática, não uma previsão de cada cupom. O fluxo efetivo depende da fórmula de remuneração, dos períodos de apuração e das condições finais do DIE e do termo de emissão. Principal + remuneração não é valor garantido no vencimento.</div>
+</section>
+<section class="card">
+<h2>Riscos e condições</h2>
+<p class="note">Estrutura emitida pelo Itaú Unibanco, com risco de crédito do emissor e exposição a eventos de crédito da entidade de referência (Governo Central do Brasil). Não conta com garantia do FGC. Conforme o material apresentado, eventos de crédito podem ocasionar perda de todo o valor inicialmente aplicado. Vencimento indicado no material: 02/07/2035. Esta ferramenta é ilustrativa e não substitui o DIE nem o termo de emissão. Confirme taxa final, datas e fluxo de pagamentos antes de apresentar ao cliente.</p>
+</section>
+</main>
+<script>
+(function(){
+ const el=id=>document.getElementById(id);
+ const parse=(value)=>{
+   if(value===null || value===undefined) return 0;
+   let s=String(value).trim().replace(/\s/g,'').replace(/R\$/gi,'');
+   if(!s) return 0;
+   // Accept Brazilian decimals (15,015), as well as dot decimals (15.015).
+   if(s.includes(',') && s.includes('.')) {
+     s=s.replace(/\./g,'').replace(',','.');
+   } else {
+     s=s.replace(',','.');
+   }
+   const n=Number(s);
+   return Number.isFinite(n) ? n : NaN;
+ };
+ const brl=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:2});
+ const pct=(n,d=3)=>n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+ function calc(showError=false){
+   const p=parse(el('amount').value);
+   const di=parse(el('di').value);
+   const sp=parse(el('spread').value);
+   const y=parse(el('years').value);
+   const wait=parse(el('wait').value);
+   const values=[p,di,sp,y,wait];
+   if(values.some(v=>!Number.isFinite(v)) || p<0 || di<0 || sp<0 || y<=0 || wait<0){
+     if(showError) alert('Confira os valores. Use vírgula ou ponto nos decimais e informe prazo maior que zero.');
+     return null;
+   }
+   const combined=di+sp;
+   const rate=combined/100;
+   const annual=p*rate;
+   const monthly=annual/12;
+   const accumulated=annual*y;
+   const total=p+accumulated;
+   el('combined').textContent=pct(combined)+'% a.a.';
+   el('principal').textContent=brl(p);
+   el('annual').textContent=brl(annual);
+   el('monthly').textContent=brl(monthly);
+   el('term').textContent=pct(y,2)+' anos';
+   el('accumulated').textContent=brl(accumulated);
+   el('total').textContent=brl(total);
+   return {p,di,sp,y,wait,rate,annual,monthly,accumulated,total,combined};
+ }
+ el('calculate').addEventListener('click',()=>calc(true));
+ ['amount','di','spread','years','wait'].forEach(id=>{
+   el(id).addEventListener('input',()=>calc(false));
+   el(id).addEventListener('change',()=>calc(false));
+ });
+ el('copy').addEventListener('click',async()=>{
+   const x=calc(true); if(!x)return;
+   const msg=`SIMULAÇÃO ILUSTRATIVA — SOBERANO RENDA PRÉ
+Aplicação: ${brl(x.p)}
+Referência DI futuro: ${pct(x.di)}% a.a.
+Adicional: ${pct(x.sp,2)} p.p. a.a.
+Taxa indicativa combinada: ${pct(x.combined)}% a.a.
+Remuneração bruta anual equivalente: ${brl(x.annual)}
+Média mensal equivalente: ${brl(x.monthly)}
+Prazo ilustrativo: ${pct(x.y,2)} anos
+Remuneração bruta acumulada estimada (juros simples): ${brl(x.accumulated)}
+Principal + remuneração estimada: ${brl(x.total)}
+
+Estimativa simplificada; não representa o fluxo contratual de cupons nem valor garantido. Confirmar taxa e fluxo no DIE e no termo de emissão. Há risco de crédito do emissor e da entidade de referência; não há FGC e pode haver perda integral nos eventos previstos nos documentos.`;
+   try {
+     if(navigator.clipboard && window.isSecureContext) {
+       await navigator.clipboard.writeText(msg);
+       el('copy').textContent='Resumo copiado!';
+       setTimeout(()=>el('copy').textContent='Copiar resumo para WhatsApp',1800);
+     } else {
+       window.prompt('Copie o resumo abaixo:',msg);
+     }
+   } catch(e) { window.prompt('Copie o resumo abaixo:',msg); }
+ });
+ calc(false);
+})();
+</script>
+</body></html>
