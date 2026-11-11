@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102b46">
+<title>Central de Mensagens</title>
+<style>
+:root{--navy:#102b46;--blue:#2463a6;--bg:#f3f6fa;--ink:#172536;--muted:#667789;--line:#dce4ed;--green:#16845b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:var(--navy);color:white;padding:24px 18px 21px}header .eyebrow{font-size:12px;opacity:.75;letter-spacing:.08em;text-transform:uppercase}h1{font-size:25px;margin:7px 0 5px}header p{margin:0;color:#d5e1ed;font-size:14px}
+main{max-width:780px;margin:auto;padding:15px 13px 38px}.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:13px;box-shadow:0 2px 8px #18324a0a}
+h2{font-size:17px;margin:0 0 12px}.categories{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.cat{border:1px solid var(--line);background:#fff;border-radius:11px;padding:12px 9px;text-align:left;font-weight:650;color:var(--ink);min-height:55px}
+.cat.active{border-color:var(--blue);background:#eef5fc;color:var(--blue)}
+label{display:block;font-size:13px;font-weight:650;margin:12px 0 6px;color:#405267}
+input,textarea,select{width:100%;border:1px solid #cbd6e1;border-radius:10px;padding:12px;font:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:145px;resize:vertical;line-height:1.45}
+button{font:inherit;cursor:pointer}.primary{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:12px 14px;font-weight:650}.secondary{background:#edf2f7;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+.template-list{display:grid;gap:8px}.template{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:11px;padding:10px;background:white}
+.template .pick{background:none;border:0;text-align:left;color:var(--ink);font-weight:650;flex:1;padding:3px;min-width:0}
+.template small{display:block;color:var(--muted);font-weight:400;margin-top:4px;line-height:1.3}
+.template .del{border:0;background:#fff1f1;color:#9b3333;border-radius:8px;padding:8px;font-size:12px}
+.hint{font-size:12px;color:var(--muted);line-height:1.45}.output{white-space:pre-wrap;background:#f7f9fc;border:1px solid var(--line);border-radius:11px;padding:13px;min-height:90px;line-height:1.5}
+.empty{color:var(--muted);font-size:14px;padding:8px 0}.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{font-size:11px;background:#eaf4ef;color:var(--green);padding:5px 8px;border-radius:30px}
+.status{font-size:13px;color:var(--green);min-height:18px;margin:9px 0 0}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 20px 25px}
+@media(min-width:600px){.categories{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Seu espaço de atendimento</div><h1>Central de Mensagens</h1><p>Modelos prontos para personalizar e copiar.</p></header>
+<main>
+<section class="panel">
+ <div class="topline"><h2>1. Categoria</h2><span class="pill">Uso pessoal</span></div>
+ <div class="categories">
+  <button class="cat active" data-cat="Investimentos">💰 Investimentos</button>
+  <button class="cat" data-cat="Mercado">📊 Mercado</button>
+  <button class="cat" data-cat="Relacionamento">💬 Relacionamento</button>
+  <button class="cat" data-cat="Outros">📝 Outros</button>
+ </div>
+</section>
+<section class="panel">
+ <h2>2. Escolha um modelo pronto</h2>
+ <div id="templateList" class="template-list"></div>
+ <p class="hint">Toque no nome do modelo para carregar o texto no editor.</p>
+</section>
+<section class="panel">
+ <h2>3. Personalize</h2>
+ <label for="client">Nome do cliente</label><input id="client" placeholder="Ex.: João">
+ <label for="editor">Mensagem-base (você pode editar)</label><textarea id="editor" placeholder="Escolha um modelo acima ou escreva sua mensagem."></textarea>
+ <p class="hint">O marcador <b>{nome}</b> será substituído pelo nome informado. Se deixar o nome vazio, o marcador será removido.</p>
+ <div class="row" style="margin-top:11px"><button class="primary" id="generate">Montar mensagem</button><button class="secondary" id="clear">Limpar</button></div>
+ <label>Mensagem pronta para copiar</label><div class="output" id="output">Sua mensagem aparecerá aqui.</div>
+ <div class="row" style="margin-top:10px"><button class="primary" id="copy">Copiar mensagem</button><button class="secondary" id="save">Salvar como modelo</button></div>
+ <p class="status" id="status" aria-live="polite"></p>
+</section>
+<section class="panel">
+ <h2>4. Criar um modelo seu</h2>
+ <label for="newTitle">Nome do modelo</label><input id="newTitle" placeholder="Ex.: Retorno sobre aplicação">
+ <label for="newCategory">Categoria</label><select id="newCategory"><option>Investimentos</option><option>Mercado</option><option>Relacionamento</option><option>Outros</option></select>
+ <button class="secondary" id="add" style="margin-top:12px;width:100%">＋ Salvar texto do editor como novo modelo</button>
+ <p class="hint">Os modelos personalizados ficam salvos neste navegador. Não coloque CPF, número de conta, saldo, posição de carteira ou outros dados sigilosos de clientes.</p>
+</section>
+</main>
+<footer>Central de Mensagens • Revise cada texto e confirme taxas, prazos, riscos e condições antes de enviar.</footer>
+<script>
+const defaults=[
+{id:"d1",cat:"Investimentos",title:"Oportunidade de aplicação",text:"Olá, {nome}! Tudo bem? Gostaria de apresentar uma oportunidade de investimento que pode fazer sentido para seus objetivos. Temos observado condições interessantes no mercado e acredito que vale avaliarmos as alternativas disponíveis, considerando rentabilidade, prazo e liquidez. Podemos conversar?"},
+{id:"d2",cat:"Investimentos",title:"Vencimento de CDB",text:"Olá, {nome}! Tudo bem? Identifiquei que seu CDB está próximo do vencimento e gostaria de conversar sobre a destinação desse recurso. Temos algumas alternativas de investimento disponíveis e podemos avaliar juntos as melhores condições, considerando seus objetivos, prazo e necessidade de liquidez."},
+{id:"d3",cat:"Investimentos",title:"Captação de recursos",text:"Olá, {nome}! Tudo bem? Gostaria de entender se você possui algum recurso disponível ou previsão de entrada de valores nos próximos meses. Podemos avaliar possibilidades de investimento para direcionar esses recursos de forma estratégica, buscando boas oportunidades e mantendo uma carteira alinhada aos seus objetivos."},
+{id:"d4",cat:"Investimentos",title:"Diversificação da carteira",text:"Olá, {nome}! Tudo bem? Gostaria de revisar com você a distribuição dos investimentos. A diversificação pode ajudar a equilibrar liquidez, risco e oportunidades, sempre respeitando seu perfil e seus objetivos. Podemos agendar uma conversa?"},
+{id:"d5",cat:"Investimentos",title:"Revisão de carteira",text:"Olá, {nome}! Tudo bem? Estou fazendo um acompanhamento da sua carteira para verificar se os investimentos continuam alinhados aos seus objetivos, prazos e necessidade de liquidez. Gostaria de reservar um momento para revisarmos juntos."},
+{id:"d6",cat:"Investimentos",title:"Investimento com liquidez",text:"Olá, {nome}! Tudo bem? Se a prioridade neste momento for manter flexibilidade para movimentar os recursos, podemos avaliar alternativas com liquidez compatível com sua necessidade. Posso levantar as opções disponíveis e te apresentar?"},
+{id:"d7",cat:"Investimentos",title:"Alternativa prefixada",text:"Olá, {nome}! Tudo bem? Diante das expectativas para os juros, pode ser interessante avaliar uma alternativa prefixada, que permite contratar uma taxa conhecida no momento da aplicação. É importante considerar o prazo e que, em caso de resgate antecipado, o valor pode oscilar conforme as condições de mercado. Podemos conversar sobre essa possibilidade?"},
+{id:"d8",cat:"Investimentos",title:"Antecipação de vencimento",text:"Estamos em um momento de excelentes oportunidades de taxas no mercado e identificamos uma aplicação com vencimento previsto para o início do próximo ano.\n\nPensando em aproveitar as condições atuais, gostaria de avaliar a possibilidade de anteciparmos esse vencimento para realocarmos os recursos desde já, garantindo melhores oportunidades de rentabilidade e evitando perder as taxas disponíveis neste momento."},
+{id:"d9",cat:"Mercado",title:"Comentário de cenário",text:"Olá, {nome}! Tudo bem? O cenário econômico segue exigindo atenção às decisões de investimento. Por isso, vale acompanhar juros, inflação e expectativas do mercado e avaliar se a carteira continua adequada aos seus objetivos. Se fizer sentido, podemos conversar sobre os impactos para seus investimentos."},
+{id:"d10",cat:"Mercado",title:"Explicação sobre marcação a mercado",text:"Olá, {nome}! Tudo bem? Gostaria de explicar um ponto importante sobre seus investimentos. Alguns títulos de renda fixa sofrem oscilações de preço diariamente, conforme as taxas de juros praticadas no mercado. Esse movimento é chamado de marcação a mercado.\n\nQuando as taxas de mercado sobem, o preço do título pode cair; quando as taxas caem, o preço pode subir. Se você mantiver o título até o vencimento e o emissor cumprir suas obrigações, serão observadas as condições contratadas. Porém, se precisar vender antes, o valor poderá ser diferente do inicialmente investido. Se quiser, podemos conversar e analisar o impacto disso na sua carteira."},
+{id:"d11",cat:"Mercado",title:"Acompanhamento de juros",text:"Olá, {nome}! Tudo bem? As decisões sobre juros podem influenciar a rentabilidade e os preços dos investimentos. Estou acompanhando esse cenário e podemos avaliar se existe necessidade de algum ajuste na sua carteira, sempre considerando seu perfil e horizonte de investimento."},
+{id:"d12",cat:"Relacionamento",title:"Cliente sem movimentação",text:"Olá, {nome}! Tudo bem?\n\nPassando para retomar nosso contato e saber como estão as coisas por aí!\n\nTenho acompanhado as oportunidades do mercado e gostaria de manter nossa proximidade para que possamos aproveitar boas alternativas quando fizer sentido para você.\n\nSempre que tiver algum novo projeto ou plano financeiro, podemos conversar e avaliar juntos as melhores possibilidades.\n\nConte comigo!"},
+{id:"d13",cat:"Relacionamento",title:"Retomada de contato",text:"Olá, {nome}! Tudo bem? Faz algum tempo que não conversamos e gostaria de retomar nosso contato. Quero entender se seus objetivos financeiros continuam os mesmos ou se houve alguma mudança nos seus planos. Assim, consigo acompanhar melhor seus investimentos e identificar oportunidades que façam sentido para você."},
+{id:"d14",cat:"Relacionamento",title:"Agendar conversa",text:"Olá, {nome}! Tudo bem? Gostaria de agendar uma breve conversa para entender seus objetivos e revisar possíveis oportunidades para seus investimentos. Qual período costuma ser melhor para você?"},
+{id:"d15",cat:"Relacionamento",title:"Pesquisa NPS",text:"Olá, {nome}! Tudo bem?\n\nGostaria de te avisar que em breve você receberá uma pesquisa referente ao meu atendimento.\n\nEssa avaliação é muito importante para mim, pois ela compõe diretamente a minha nota. Por isso, conto muito com a sua participação!\n\nE, caso tenha alguma sugestão, comentário ou ponto que gostaria de compartilhar, peço que me envie por aqui. Será muito bom receber seu feedback e mantermos essa proximidade.\n\nAgradeço de coração pela confiança e pela parceria. Conte sempre comigo! ❤️"},
+{id:"d16",cat:"Relacionamento",title:"Perfil vencido",text:"Olá, {nome}! Tudo bem?\n\nIdentifiquei que seu perfil de investidor está vencido e precisamos atualizá-lo.\n\nPara isso, basta acessar o aplicativo Itaú, clicar no sininho de notificações e selecionar a atualização do seu perfil. Confira as informações e, se estiver de acordo, aprove o perfil. Caso não concorde, você poderá refazer as respostas.\n\nÉ muito importante manter seu perfil atualizado para que seus investimentos estejam adequados às suas necessidades e objetivos.\n\nConto com você! 😊"},
+{id:"d17",cat:"Previdência",title:"Previdência PGBL",text:"Olá, {nome}! Tudo bem?\n\nVocê já pensou em utilizar a previdência privada também como uma estratégia para pagar menos Imposto de Renda?\n\nNo PGBL, quem atende aos requisitos pode deduzir as contribuições da base de cálculo do IR, respeitando o limite de até 12% da renda bruta tributável anual.\n\nVocê já utiliza esse benefício ou gostaria de conhecer melhor essa possibilidade? Podemos avaliar juntos!"},
+{id:"d18",cat:"Outros",title:"Agradecimento",text:"Olá, {nome}! Obrigada pela confiança e pela disponibilidade. Sigo à disposição para ajudar no que precisar. Conte comigo!"},
+{id:"d19",cat:"Outros",title:"Solicitar retorno",text:"Olá, {nome}! Tudo bem? Quando tiver um momento, poderia me dar um retorno sobre o assunto que conversamos? Assim consigo dar sequência ao atendimento. Obrigada!"}
+]
+const KEY="central_mensagens_v2";
+let custom=[];try{custom=JSON.parse(localStorage.getItem(KEY)||"[]");if(!Array.isArray(custom))custom=[]}catch(e){custom=[]}
+let category="Investimentos",ready="";
+const $=id=>document.getElementById(id);
+const all=()=>defaults.concat(custom);
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(custom));return true}catch(e){return false}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function render(){
+ document.querySelectorAll(".cat").forEach(b=>b.classList.toggle("active",b.dataset.cat===category));
+ const list=all().filter(x=>x.cat===category);$("templateList").innerHTML="";
+ if(!list.length){$("templateList").innerHTML='<div class="empty">Ainda não há modelos nesta categoria.</div>';return}
+ list.forEach(x=>{
+  const d=document.createElement("div");d.className="template";
+  const b=document.createElement("button");b.className="pick";b.innerHTML=esc(x.title)+'<small>'+esc(x.text.slice(0,92))+(x.text.length>92?"…":"")+'</small>';
+  b.onclick=()=>{$("editor").value=x.text;$("status").textContent="Modelo carregado. Você pode editar antes de montar a mensagem.";};
+  d.appendChild(b);
+  if(String(x.id).startsWith("c")){const del=document.createElement("button");del.className="del";del.textContent="Excluir";del.onclick=()=>{if(confirm("Excluir este modelo personalizado?")){custom=custom.filter(t=>t.id!==x.id);persist();render()}};d.appendChild(del)}
+  $("templateList").appendChild(d);
+ });
+}
+document.querySelectorAll(".cat").forEach(b=>b.addEventListener("click",()=>{category=b.dataset.cat;render()}));
+$("generate").onclick=()=>{const t=$("editor").value.trim();if(!t){$("status").textContent="Escolha um modelo ou escreva uma mensagem primeiro.";return}
+ const name=$("client").value.trim();ready=t.replace(/\{nome\}/gi,name);$("output").textContent=ready;$("status").textContent="Mensagem montada. Revise o texto antes de enviar."};
+$("clear").onclick=()=>{$("client").value="";$("editor").value="";$("output").textContent="Sua mensagem aparecerá aqui.";ready="";$("status").textContent=""};
+async function fallbackCopy(text){const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";ta.style.left="-9999px";document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}ta.remove();return ok}
+$("copy").onclick=async()=>{if(!ready){$("status").textContent="Primeiro toque em “Montar mensagem”.";return}
+ let ok=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(ready);ok=true}}catch(e){}
+ if(!ok)ok=await fallbackCopy(ready);
+ $("status").textContent=ok?"Mensagem copiada. Agora você pode colar no WhatsApp.":"Não consegui copiar automaticamente neste modo. Pressione e segure o texto da mensagem pronta para copiar.";
+};
+function addTemplate(){const title=$("newTitle").value.trim(),text=$("editor").value.trim(),cat=$("newCategory").value;if(!title||!text){$("status").textContent="Preencha o nome do modelo e o texto no editor.";return}
+ custom.push({id:"c"+Date.now(),cat,title,text});const ok=persist();category=cat;render();$("newTitle").value="";$("status").textContent=ok?"Modelo personalizado salvo neste aparelho.":"Modelo adicionado nesta sessão, mas o navegador não permitiu salvar permanentemente."}
+$("save").onclick=()=>{$("newTitle").value=$("newTitle").value||"Meu modelo";$("newCategory").value=category;addTemplate()};
+$("add").onclick=addTemplate;
+render();
+</script>
+</body></html>
